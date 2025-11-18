@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // UTILISEZ VOTRE IP TROUVÉE
-const API_URL = 'http://10.10.242.81:8000/api';
+const API_URL = 'http://192.168.1.17:8000/api';
 
 console.log('🔄 API URL utilisée:', API_URL);
 

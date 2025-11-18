@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import api from '../api/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -24,114 +25,137 @@ export default function LoginScreen({ navigation }) {
       await AsyncStorage.setItem('refresh_token', refresh);
 
       Alert.alert('Succès', 'Connexion réussie !');
-      navigation.navigate('Profile');
+      navigation.navigate('Home');
     } catch (error) {
       console.log('Erreur de connexion:', error.response?.data || error.message);
-      
-      if (error.response?.status === 401) {
-        Alert.alert('Erreur', 'Email ou mot de passe incorrect');
-      } else if (error.response?.status === 400) {
-        Alert.alert('Erreur', 'Données invalides');
-      } else if (error.code === 'NETWORK_ERROR') {
-        Alert.alert('Erreur', 'Problème de connexion. Vérifiez votre internet.');
-      } else {
-        Alert.alert('Erreur', 'Impossible de se connecter');
-      }
+      Alert.alert('Erreur', 'Identifiants invalides ou problème réseau');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Connexion</Text>
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        editable={!isLoading}
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Mot de passe"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-        editable={!isLoading}
-      />
-      
-      <TouchableOpacity 
-        style={[styles.button, isLoading && styles.buttonDisabled]} 
-        onPress={handleLogin}
-        disabled={isLoading}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
       >
-        {isLoading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text style={styles.buttonText}>Se connecter</Text>
-        )}
-      </TouchableOpacity>
-      
-      <TouchableOpacity 
-        onPress={() => navigation.navigate('Register')}
-        disabled={isLoading}
-      >
-        <Text style={[styles.link, isLoading && styles.linkDisabled]}>
-          Créer un compte
+
+        {/* Back Button */}
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
+
+        {/* Illustration */}
+        <Image source={require('../assets/login.png')} style={styles.image} />
+
+        {/* Title */}
+        <Text style={styles.title}>Sign In</Text>
+
+        {/* Email Input */}
+        <TextInput
+          style={styles.input}
+          placeholder="User name"
+          value={email}
+          onChangeText={setEmail}
+          editable={!isLoading}
+        />
+
+        {/* Password Input */}
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+          editable={!isLoading}
+        />
+
+        {/* Login Button */}
+        <TouchableOpacity 
+          style={[styles.button, isLoading && styles.buttonDisabled]} 
+          onPress={handleLogin}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={styles.buttonText}>Log in</Text>
+          )}
+        </TouchableOpacity>
+
+        {/* Sign Up Link */}
+        <Text style={styles.bottomText}>
+          Don't Have An Account ?  
+          <Text onPress={() => navigation.navigate('Register')} style={styles.signUpText}>  Sign Up</Text>
         </Text>
-      </TouchableOpacity>
-    </View>
+
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    padding: 20,
-    backgroundColor: '#f5f5f5',
+    flexGrow: 1,
+    backgroundColor: 'white',
+    paddingHorizontal: 25,
+    paddingTop: 40,
+    paddingBottom: 30
+  },
+  backBtn: {
+    marginBottom: 10,
+  },
+  image: {
+    width: 220,
+    height: 220,
+    alignSelf: 'center',
+    resizeMode: 'contain',
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 30,
+    color: '#6DB47C',
+    marginBottom: 20,
   },
   input: { 
-    backgroundColor: 'white',
-    borderWidth: 1, 
-    borderColor: '#ddd',
-    padding: 15, 
-    marginVertical: 5, 
-    borderRadius: 8,
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 12,
+    marginVertical: 8,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 }
   },
   button: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#9BD79F',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 25,
     alignItems: 'center',
-    marginVertical: 10,
+    marginTop: 15,
   },
   buttonDisabled: {
-    backgroundColor: '#6c757d',
+    opacity: 0.6,
   },
   buttonText: { 
     color: 'white', 
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 'bold',
   },
-  link: { 
-    color: '#007bff', 
-    marginTop: 15, 
+  bottomText: {
     textAlign: 'center',
-    fontSize: 16,
+    marginTop: 18,
+    fontSize: 14,
+    color: '#000',
   },
-  linkDisabled: {
-    color: '#6c757d',
-  }
+  signUpText: {
+    color: '#6DB47C',
+    fontWeight: '600'
+  },
 });

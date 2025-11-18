@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import api from '../api/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -33,7 +34,7 @@ export default function RegisterScreen({ navigation }) {
       navigation.navigate('Profile');
     } catch (error) {
       console.log('Erreur d\'inscription:', error.response?.data || error.message);
-      
+
       if (error.response?.status === 400) {
         const errorData = error.response.data;
         if (errorData.email) {
@@ -43,8 +44,6 @@ export default function RegisterScreen({ navigation }) {
         } else {
           Alert.alert('Erreur', 'Données invalides');
         }
-      } else if (error.code === 'NETWORK_ERROR') {
-        Alert.alert('Erreur', 'Problème de connexion. Vérifiez votre internet.');
       } else {
         Alert.alert('Erreur', 'Impossible de s\'inscrire');
       }
@@ -54,104 +53,138 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Inscription</Text>
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Nom d'utilisateur"
-        value={username}
-        onChangeText={setUsername}
-        autoCapitalize="none"
-        editable={!isLoading}
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        editable={!isLoading}
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Mot de passe"
-        value={password}
-        secureTextEntry
-        onChangeText={setPassword}
-        editable={!isLoading}
-      />
-      
-      <TouchableOpacity 
-        style={[styles.button, isLoading && styles.buttonDisabled]} 
-        onPress={handleRegister}
-        disabled={isLoading}
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : null}
+    >
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
       >
-        {isLoading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text style={styles.buttonText}>S'inscrire</Text>
-        )}
-      </TouchableOpacity>
-      
-      <TouchableOpacity 
-        onPress={() => navigation.navigate('Login')}
-        disabled={isLoading}
-      >
-        <Text style={[styles.link, isLoading && styles.linkDisabled]}>
-          J'ai déjà un compte
-        </Text>
-      </TouchableOpacity>
-    </View>
+        <View style={styles.container}>
+
+          {/* Back Button */}
+          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="black" />
+          </TouchableOpacity>
+
+          {/* Illustration */}
+          <Image source={require('../assets/register.png')} style={styles.image} />
+
+          {/* Title */}
+          <Text style={styles.title}>Sign Up</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="User name"
+            value={username}
+            onChangeText={setUsername}
+            editable={!isLoading}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!isLoading}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            editable={!isLoading}
+          />
+
+          <TouchableOpacity 
+            style={[styles.button, isLoading && styles.buttonDisabled]} 
+            onPress={handleRegister}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={styles.buttonText}>Sign Up</Text>
+            )}
+          </TouchableOpacity>
+
+          <Text style={styles.bottomText}>
+            Already Have An Account ?
+            <Text onPress={() => navigation.navigate('Login')} style={styles.signInText}>  Sign In</Text>
+          </Text>
+
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+  },
   container: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    padding: 20,
-    backgroundColor: '#f5f5f5',
+    flex: 1,
+    backgroundColor: 'white',
+    paddingHorizontal: 25,
+    paddingTop: 40,
+    paddingBottom: 30,
+  },
+  backBtn: {
+    marginBottom: 10,
+  },
+  image: {
+    width: 220,
+    height: 220,
+    alignSelf: 'center',
+    resizeMode: 'contain',
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 30,
+    color: '#6DB47C',
+    marginBottom: 20,
   },
   input: { 
-    backgroundColor: 'white',
-    borderWidth: 1, 
-    borderColor: '#ddd',
-    padding: 15, 
-    marginVertical: 5, 
-    borderRadius: 8,
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 12,
+    marginVertical: 8,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 }
   },
   button: {
-    backgroundColor: '#28a745',
+    backgroundColor: '#9BD79F',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 25,
     alignItems: 'center',
-    marginVertical: 10,
+    marginTop: 15,
   },
   buttonDisabled: {
-    backgroundColor: '#6c757d',
+    opacity: 0.6,
   },
   buttonText: { 
     color: 'white', 
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 'bold',
   },
-  link: { 
-    color: '#007bff', 
-    marginTop: 15, 
+  bottomText: {
     textAlign: 'center',
-    fontSize: 16,
+    marginTop: 18,
+    fontSize: 14,
+    color: '#000',
   },
-  linkDisabled: {
-    color: '#6c757d',
-  }
+  signInText: {
+    color: '#6DB47C',
+    fontWeight: '600'
+  },
 });
