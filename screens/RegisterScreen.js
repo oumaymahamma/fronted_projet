@@ -1,135 +1,150 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Image
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import api from '../api/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../context/AuthContext';
 
-export default function RegisterScreen({ navigation }) {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const RegisterScreen = ({ navigation }) => {
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    first_name: '',
+    last_name: '',
+    password: '',
+    password2: '',
+  });
+
   const [isLoading, setIsLoading] = useState(false);
+  const { register } = useAuth();
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleRegister = async () => {
-    if (!username || !email || !password) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert('Erreur', 'Le mot de passe doit contenir au moins 6 caractères');
-      return;
-    }
-
     setIsLoading(true);
+    await register(formData);
+    setIsLoading(false);
+  };
 
-    try {
-      const response = await api.post('/register/', { username, email, password });
-      const { access, refresh } = response.data;
-     
-      await AsyncStorage.setItem('access_token', access);
-      await AsyncStorage.setItem('refresh_token', refresh);
-
-      Alert.alert('Succès', 'Inscription réussie !');
-      navigation.navigate('Profile');
-    } catch (error) {
-      console.log('Erreur d\'inscription:', error.response?.data || error.message);
-
-      if (error.response?.status === 400) {
-        const errorData = error.response.data;
-        if (errorData.email) {
-          Alert.alert('Erreur', 'Cet email est déjà utilisé');
-        } else if (errorData.username) {
-          Alert.alert('Erreur', 'Ce nom d\'utilisateur est déjà pris');
-        } else {
-          Alert.alert('Erreur', 'Données invalides');
-        }
-      } else {
-        Alert.alert('Erreur', 'Impossible de s\'inscrire');
-      }
-    } finally {
-      setIsLoading(false);
-    }
+  const isFormValid = () => {
+    return (
+      formData.username &&
+      formData.email &&
+      formData.password &&
+      formData.password2 &&
+      formData.password === formData.password2
+    );
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : null}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView 
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
 
-          {/* Back Button */}
-          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="black" />
-          </TouchableOpacity>
+        {/* Back Button */}
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
 
-          {/* Illustration */}
-          <Image source={require('../assets/register.png')} style={styles.image} />
+        {/* Illustration */}
+        <Image source={require('../assets/register.png')} style={styles.image} />
 
-          {/* Title */}
-          <Text style={styles.title}>Sign Up</Text>
+        {/* Title */}
+        <Text style={styles.title}>Sign Up</Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="User name"
-            value={username}
-            onChangeText={setUsername}
-            editable={!isLoading}
-          />
+        {/* Inputs */}
+        <TextInput
+          style={styles.input}
+          placeholder="User name *"
+          value={formData.username}
+          onChangeText={(value) => handleChange('username', value)}
+          autoCapitalize="none"
+        />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            editable={!isLoading}
-          />
+        <TextInput
+          style={styles.input}
+          placeholder="Email *"
+          value={formData.email}
+          onChangeText={(value) => handleChange('email', value)}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-            editable={!isLoading}
-          />
+        <TextInput
+          style={styles.input}
+          placeholder="First name"
+          value={formData.first_name}
+          onChangeText={(value) => handleChange('first_name', value)}
+        />
 
-          <TouchableOpacity 
-            style={[styles.button, isLoading && styles.buttonDisabled]} 
-            onPress={handleRegister}
-            disabled={isLoading}
+        <TextInput
+          style={styles.input}
+          placeholder="Last name"
+          value={formData.last_name}
+          onChangeText={(value) => handleChange('last_name', value)}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Password *"
+          secureTextEntry
+          value={formData.password}
+          onChangeText={(value) => handleChange('password', value)}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Confirm password *"
+          secureTextEntry
+          value={formData.password2}
+          onChangeText={(value) => handleChange('password2', value)}
+        />
+
+        {/* Register Button */}
+        <TouchableOpacity
+          style={[styles.button, (!isFormValid() || isLoading) && styles.buttonDisabled]}
+          onPress={handleRegister}
+          disabled={!isFormValid() || isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={styles.buttonText}>Sign Up</Text>
+          )}
+        </TouchableOpacity>
+
+        {/* Link to Login */}
+        <Text style={styles.bottomText}>
+          Already have an account ?
+          <Text
+            style={styles.signInText}
+            onPress={() => navigation.navigate('Login')}
           >
-            {isLoading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text style={styles.buttonText}>Sign Up</Text>
-            )}
-          </TouchableOpacity>
-
-          <Text style={styles.bottomText}>
-            Already Have An Account ?
-            <Text onPress={() => navigation.navigate('Login')} style={styles.signInText}>  Sign In</Text>
+            {' '}Sign In
           </Text>
+        </Text>
 
-        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  scrollContainer: {
+  container: {
     flexGrow: 1,
-  },
-  container: { 
-    flex: 1,
     backgroundColor: 'white',
     paddingHorizontal: 25,
     paddingTop: 40,
@@ -151,7 +166,7 @@ const styles = StyleSheet.create({
     color: '#6DB47C',
     marginBottom: 20,
   },
-  input: { 
+  input: {
     backgroundColor: '#fff',
     padding: 15,
     borderRadius: 12,
@@ -160,7 +175,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 }
+    shadowOffset: { width: 0, height: 2 },
   },
   button: {
     backgroundColor: '#9BD79F',
@@ -172,8 +187,8 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.6,
   },
-  buttonText: { 
-    color: 'white', 
+  buttonText: {
+    color: 'white',
     fontSize: 17,
     fontWeight: 'bold',
   },
@@ -185,6 +200,8 @@ const styles = StyleSheet.create({
   },
   signInText: {
     color: '#6DB47C',
-    fontWeight: '600'
+    fontWeight: '600',
   },
 });
+
+export default RegisterScreen;

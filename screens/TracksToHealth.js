@@ -36,7 +36,7 @@ const TracksToHealth = ({ navigation }) => {
         {/* Get Started Button */}
         <TouchableOpacity 
           style={styles.getStartedButton}
-          onPress={() => navigation.navigate('Register')}
+          onPress={() => navigation.navigate('Login')}
         >
           <Text style={styles.getStartedButtonText}>Get Started</Text>
         </TouchableOpacity>

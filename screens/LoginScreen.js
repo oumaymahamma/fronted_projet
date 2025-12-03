@@ -1,37 +1,34 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Image
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import api from '../api/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../context/AuthContext';
 
-export default function LoginScreen({ navigation }) {
-  const [email, setEmail] = useState('');
+const LoginScreen = ({ navigation }) => {
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { login, alert } = useAuth();
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+    if (!username || !password) {
+      alert.showAlert('Veuillez remplir tous les champs', 'error');
       return;
     }
 
     setIsLoading(true);
-
-    try {
-      const response = await api.post('/token/', { email, password });
-      const { access, refresh } = response.data;
-
-      await AsyncStorage.setItem('access_token', access);
-      await AsyncStorage.setItem('refresh_token', refresh);
-
-      Alert.alert('Succès', 'Connexion réussie !');
-      navigation.navigate('Home');
-    } catch (error) {
-      console.log('Erreur de connexion:', error.response?.data || error.message);
-      Alert.alert('Erreur', 'Identifiants invalides ou problème réseau');
-    } finally {
-      setIsLoading(false);
-    }
+    await login({ username, password });
+    setIsLoading(false);
   };
 
   return (
@@ -43,40 +40,45 @@ export default function LoginScreen({ navigation }) {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-
-        {/* Back Button */}
+        {/* Back button */}
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
 
         {/* Illustration */}
-        <Image source={require('../assets/login.png')} style={styles.image} />
+        <Image
+          source={require('../assets/login.png')}
+          style={styles.image}
+        />
 
         {/* Title */}
         <Text style={styles.title}>Sign In</Text>
 
-        {/* Email Input */}
+        {/* Username */}
         <TextInput
           style={styles.input}
           placeholder="User name"
-          value={email}
-          onChangeText={setEmail}
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+          autoCorrect={false}
           editable={!isLoading}
         />
 
-        {/* Password Input */}
+        {/* Password */}
         <TextInput
           style={styles.input}
           placeholder="Password"
           secureTextEntry
           value={password}
           onChangeText={setPassword}
+          autoCapitalize="none"
           editable={!isLoading}
         />
 
         {/* Login Button */}
-        <TouchableOpacity 
-          style={[styles.button, isLoading && styles.buttonDisabled]} 
+        <TouchableOpacity
+          style={[styles.button, isLoading && styles.buttonDisabled]}
           onPress={handleLogin}
           disabled={isLoading}
         >
@@ -89,32 +91,40 @@ export default function LoginScreen({ navigation }) {
 
         {/* Sign Up Link */}
         <Text style={styles.bottomText}>
-          Don't Have An Account ?  
-          <Text onPress={() => navigation.navigate('Register')} style={styles.signUpText}>  Sign Up</Text>
+          Don't Have An Account ?
+          <Text
+            onPress={() => navigation.navigate('Register')}
+            style={styles.signUpText}
+          >
+            {' '}Sign Up
+          </Text>
         </Text>
 
       </ScrollView>
     </KeyboardAvoidingView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { 
+  container: {
     flexGrow: 1,
     backgroundColor: 'white',
     paddingHorizontal: 25,
     paddingTop: 40,
-    paddingBottom: 30
+    paddingBottom: 30,
   },
+
   backBtn: {
     marginBottom: 10,
   },
+
   image: {
     width: 220,
     height: 220,
     alignSelf: 'center',
     resizeMode: 'contain',
   },
+
   title: {
     fontSize: 26,
     fontWeight: '700',
@@ -122,7 +132,8 @@ const styles = StyleSheet.create({
     color: '#6DB47C',
     marginBottom: 20,
   },
-  input: { 
+
+  input: {
     backgroundColor: '#fff',
     padding: 15,
     borderRadius: 12,
@@ -131,8 +142,9 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 }
+    shadowOffset: { width: 0, height: 2 },
   },
+
   button: {
     backgroundColor: '#9BD79F',
     padding: 15,
@@ -140,22 +152,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 15,
   },
+
   buttonDisabled: {
     opacity: 0.6,
   },
-  buttonText: { 
-    color: 'white', 
+
+  buttonText: {
+    color: 'white',
     fontSize: 17,
     fontWeight: 'bold',
   },
+
   bottomText: {
     textAlign: 'center',
     marginTop: 18,
     fontSize: 14,
     color: '#000',
   },
+
   signUpText: {
     color: '#6DB47C',
-    fontWeight: '600'
+    fontWeight: '600',
   },
 });
+
+export default LoginScreen;
